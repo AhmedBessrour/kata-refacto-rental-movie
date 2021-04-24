@@ -2,8 +2,8 @@ import {Movie} from "./movie";
 
 export class Rental {
 
-    private movie: Movie;
-    private daysRented: number;
+    private readonly movie: Movie;
+    private readonly daysRented: number;
 
     public constructor(movie: Movie, daysRented: number) {
         this.movie = movie;

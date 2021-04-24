@@ -3,7 +3,30 @@ import {Rental} from "./rental";
 
 export class Customer {
 
-    private name: string;
+    private static getMovieAmont(movie: Rental): number {
+        let thisAmount = 0;
+        // determine amounts for movie line
+        switch (movie.getMovie().getPriceCode()) {
+            case Movie.REGULAR:
+                thisAmount += 2;
+                if (movie.getDaysRented() > 2) {
+                    thisAmount += (movie.getDaysRented() - 2) * 1.5;
+                }
+                break;
+            case Movie.NEW_RELEASE:
+                thisAmount += movie.getDaysRented() * 3;
+                break;
+            case Movie.CHILDRENS:
+                thisAmount += 1.5;
+                if (movie.getDaysRented() > 3) {
+                    thisAmount += (movie.getDaysRented() - 3) * 1.5;
+                }
+                break;
+        }
+        return thisAmount;
+    }
+
+    private readonly name: string;
     private rentals: Rental[] = [];
 
     public constructor(name: string) {
@@ -22,28 +45,21 @@ export class Customer {
         let totalAmount = 0;
         let frequentRenterPoints = 0;
         let result = "Rental Record for " + this.getName() + "\n";
+        const countMovies = this.countMovies(frequentRenterPoints, result, totalAmount);
+        frequentRenterPoints = countMovies.frequentRenterPoints;
+        result = countMovies.result;
+        totalAmount = countMovies.totalAmount;
 
+        // add footer lines
+        result += "Amount owed is " + totalAmount.toFixed(1) + "\n";
+        result += "You earned " + frequentRenterPoints + " frequent renter points";
+
+        return result;
+    }
+
+    private countMovies(frequentRenterPoints: number, result: string, totalAmount: number) {
         for (const movie of this.rentals) {
-            let thisAmount = 0;
-
-            // determine amounts for movie line
-            switch (movie.getMovie().getPriceCode()) {
-                case Movie.REGULAR:
-                    thisAmount += 2;
-                    if (movie.getDaysRented() > 2) {
-                        thisAmount += (movie.getDaysRented() - 2) * 1.5;
-                    }
-                    break;
-                case Movie.NEW_RELEASE:
-                    thisAmount += movie.getDaysRented() * 3;
-                    break;
-                case Movie.CHILDRENS:
-                    thisAmount += 1.5;
-                    if (movie.getDaysRented() > 3) {
-                        thisAmount += (movie.getDaysRented() - 3) * 1.5;
-                    }
-                    break;
-            }
+            const thisAmount = Customer.getMovieAmont(movie);
 
             // add frequent renter points
             frequentRenterPoints++;
@@ -56,11 +72,6 @@ export class Customer {
             result += "\t" + movie.getMovie().getTitle() + "\t" + thisAmount.toFixed(1) + "\n";
             totalAmount += thisAmount;
         }
-
-        // add footer lines
-        result += "Amount owed is " + totalAmount.toFixed(1) + "\n";
-        result += "You earned " + frequentRenterPoints + " frequent renter points";
-
-        return result;
+        return {frequentRenterPoints, result, totalAmount};
     }
 }
